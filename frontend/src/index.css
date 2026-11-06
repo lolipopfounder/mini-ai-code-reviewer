@@ -1,0 +1,89 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: rgb(206, 228, 250);
+  color: black;
+  margin: 0;
+  padding: 10px;
+}
+
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+button {
+  padding: 8px 16px;
+  margin: 4px;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: rgb(190, 190, 190);
+}
+
+button:disabled {
+  background-color: black;
+  color: white;
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 14px;
+  border: 1px solid grey;
+  border-radius: 6px;
+}
+
+pre {
+  background-color: #272822;
+  color: #f8f8f2;
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.issue {
+  background-color: white;
+  border: 1px solid grey;
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+}
+
+.compare {
+  display: flex;
+  gap: 10px;
+}
+
+.compare > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.compare pre {
+  color: black;
+}
+
+.old-code pre {
+  background-color: #ffe5e5;
+}
+
+.new-code pre {
+  background-color: #e5ffe5;
+}
+
+.num {
+  display: inline-block;
+  width: 30px;
+  color: grey;
+  user-select: none;
+}

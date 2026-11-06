@@ -1,11 +1,20 @@
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.services import review
 from app.schemas import LintResponse, LintRequest, Language
 from app.gateway import LLMGateway, OpenAICompatibleGateway
 from app.errors import LLMOutputError, error_response
+from app.config import settings
 
 app = FastAPI(title="Mini AI Code Reviewer")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_gateway() -> OpenAICompatibleGateway:
     return OpenAICompatibleGateway()
