@@ -2,13 +2,14 @@ from typing import Protocol
 import openai
 from openai import AsyncOpenAI
 from .config import settings
-from .errors import LLMError
+from .errors import LLMOutputError
 
 class LLMGateway(Protocol):
     model: str
     async def complete(self, messages: list[dict]) -> str: ...
+    async def close(self) -> None: ...
 
-class OpenAICompatibleGateway: # work with OpenAI, OpenRouter, LiteLLM and Ollama
+class OpenAICompatibleGateway:
     def __init__(self) -> None:
         self.model = settings.llm_model
         self._client = AsyncOpenAI(
@@ -28,22 +29,12 @@ class OpenAICompatibleGateway: # work with OpenAI, OpenRouter, LiteLLM and Ollam
                 # response_format={"type": "json_object"}
             )
 
-        except openai.APITimeoutError as e:
-            raise LLMError("The LLM request timed out.", status_code=504) from e
-        except (openai.APIConnectionError, openai.RateLimitError) as e:
-            raise LLMError("The LLM service is unavailable. Try again later.", status_code=503) from e
-        except openai.APIStatusError as e:
-            raise LLMError("The LLM provider could not complete the request.", status_code=503) from e
+        except Exception as e:
+            raise LLMOutputError("The LLM provider could not complete the request.") from e
 
         choice = r.choices[0]
         if choice.finish_reason == "length":
-            raise LLMError("The LLM output was cut off. Try a smaller code sample.")
-        if choice.message.refusal or choice.finish_reason == "content_filter":
-            raise LLMError("The LLM declined the request.")
-        if choice.finish_reason != "stop":
-            raise LLMError("The LLM did not return a complete reply.")
-        if not choice.message.content or not choice.message.content.strip():
-            raise LLMError("The LLM returned empty output.")
+            raise LLMOutputError("The LLM output was cut off. Try a smaller code sample.")
         return choice.message.content
 
     async def close(self) -> None:
