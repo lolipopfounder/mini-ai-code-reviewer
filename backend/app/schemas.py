@@ -13,6 +13,13 @@ class LintRequest(BaseModel):
     language: Language
     code: str = Field(min_length=1, max_length=MAX_CODE_CHARS)
     
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Code cannot be empty")
+        return v
+    
 class Issue(BaseModel):
     line_start: int = Field(ge=1, description="The starting line number of the issue, must be >= 1")
     line_end: int = Field(ge=1, description="The ending line number of the issue, must be >= 1")
