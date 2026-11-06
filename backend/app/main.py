@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Request
 
 from app.services import review
-from app.schemas import LintResponse, LintRequest
+from app.schemas import LintResponse, LintRequest, Language
 from app.gateway import LLMGateway, OpenAICompatibleGateway
 from app.errors import LLMOutputError, error_response
 
@@ -29,5 +29,10 @@ async def lint(req: LintRequest, gateway: LLMGateway = Depends(get_gateway)):
         return LintResponse(issues=issues, cache=False)
     finally:
         await gateway.close()
+        
+@app.get("/languages", tags=["LLM"])
+def get_supported_languages():
+    return {"languages": [lang.value for lang in Language]}
+
 
 
