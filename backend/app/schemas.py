@@ -7,7 +7,6 @@ MAX_CODE_CHARS = 20000
 class Language(str, Enum):
     python = "python"
     javascript = "javascript"
-    typescript = "typescript"
 
 class LintRequest(BaseModel):
     language: Language
