@@ -26,7 +26,7 @@ class OpenAICompatibleGateway:
                 messages=messages,
                 temperature=0,
                 max_tokens=settings.llm_max_tokens,
-                # response_format={"type": "json_object"}
+                response_format={"type": "json_object"} if settings.llm_json_mode else None,
             )
 
         except Exception as e:

@@ -1,9 +1,10 @@
-# Eval needs the LLM running: cd backend && python -m eval.lint_eval
+# Eval need the LLM running: python -m eval.lint_eval
 import ast
 import subprocess
 import tempfile
 import textwrap
 from fastapi.testclient import TestClient
+from app.config import settings
 from app.main import app
 
 CASES = [
@@ -53,8 +54,14 @@ CASES = [
 ]
 
 
-def parses(lang, fix):
-    fix = textwrap.dedent(fix)
+def parses(lang, fix, opens_block):
+    fix = textwrap.dedent(fix).rstrip()
+    if opens_block and lang == "python" and fix.endswith(":"):
+        fix += "\n    pass"
+    if opens_block and lang == "javascript" and fix.endswith(")"):
+        fix += " {}"
+    if opens_block and lang == "javascript" and fix.endswith("{"):
+        fix += "}"
     if lang == "python":
         for src in (fix, "def _():\n" + textwrap.indent(fix, "    ")):
             try:
@@ -77,22 +84,26 @@ def check(client, lang, code, bug_lines):
     if r.status_code != 200:
         return [f"HTTP {r.status_code}: {r.json()}"]
     issues = r.json()["issues"]
-    n = len(code.splitlines())
+    lines = code.splitlines()
+    n = len(lines)
     problems = []
     if not bug_lines and issues:
-        problems.append(f"{len(issues)} issue(s) on correct code")
+        problems.append(f"{len(issues)} issue found on correct code")
     for line in bug_lines:
         if not any(i["line_start"] <= line <= i["line_end"] for i in issues):
             problems.append(f"missed bug on line {line}")
     for i in issues:
         if not 1 <= i["line_start"] <= i["line_end"] <= n:
             problems.append(f"lines {i['line_start']}-{i['line_end']} outside 1-{n}")
-        if "\\n" in i["fix"] or "```" in i["fix"] or not parses(lang, i["fix"]):
-            problems.append(f"fix is not clean code: {i['fix'][:70]!r}")
+        replaced = lines[i["line_start"] - 1:i["line_end"]]
+        opens_block = bool(replaced) and replaced[-1].rstrip().endswith((":", "{", ")"))
+        if "\\n" in i["fix"] or "```" in i["fix"] or not parses(lang, i["fix"], opens_block):
+            problems.append(f"fix is not just a code: {i['fix'][:70]!r}")
     return problems
 
 
 def main():
+    print(f"model: {settings.llm_model}, prompt: {settings.llm_prompt_version}, json mode: {settings.llm_json_mode}\n")
     passed = 0
     with TestClient(app) as client:
         for name, lang, code, bug_lines in CASES:

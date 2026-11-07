@@ -7,6 +7,9 @@ from .schemas import Issue, LLMReview
 MAX_RETRY_ATTEMPTS = 3
 
 def sanitize(issues: list[Issue], n_lines: int) -> list[Issue]:
+    for issue in issues:
+        issue.line_start = min(max(issue.line_start, 1), n_lines)
+        issue.line_end = min(max(issue.line_end, issue.line_start), n_lines)
     return sorted(issues, key=lambda i: i.line_start)
 
 async def review(gateway: LLMGateway, language: str, code: str) -> list[Issue]:

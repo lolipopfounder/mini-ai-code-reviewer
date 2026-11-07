@@ -58,3 +58,13 @@ def test_retry_then_sorted_issues(lint):
     assert gateway.calls == 2
     assert [i["line_start"] for i in r.json()["issues"]] == [1, 2]
 
+
+# line ranges outside the code are clamped to the real lines
+def test_clamps_line_range(lint):
+    issue = {"severity": "low", "explanation": "a", "fix": "x = 1"}
+    reply = json.dumps({"issues": [
+        {**issue, "line_start": 1, "line_end": 3},
+        {**issue, "line_start": 9, "line_end": 4},
+    ]})
+    r, _ = lint({"language": "python", "code": "x = 1\ny = 2\n"}, [reply])
+    assert [(i["line_start"], i["line_end"]) for i in r.json()["issues"]] == [(1, 2), (2, 2)]

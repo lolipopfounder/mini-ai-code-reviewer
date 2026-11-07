@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     llm_model: str = "qwen3.5:9b"
     llm_timeout_s: float = 60
     llm_max_tokens: int = 5000
+    llm_json_mode: bool = False
+    llm_prompt_version: str = "v2"
     
     # Cache
     cache_ttl_s: int = 3600
