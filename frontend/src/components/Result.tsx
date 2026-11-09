@@ -44,6 +44,11 @@ function Result() {
       {issues.map((issue, i) => (
         <div key={i} className="issue">
           <h3>Severity: {issue.severity}</h3>
+          <p>
+            Line(s): {issue.line_start === issue.line_end
+              ? issue.line_start
+              : issue.line_start + ' - ' + issue.line_end}
+          </p>
           <p>{issue.explanation}</p>
           <div className="compare">
             <div className="old-code">

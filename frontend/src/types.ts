@@ -1,4 +1,4 @@
-export type Language = 'python' | 'javascript' | 'typescript'
+export type Language = 'python' | 'javascript'
 export type Severity = 'high' | 'medium' | 'low'
 
 export interface Issue {

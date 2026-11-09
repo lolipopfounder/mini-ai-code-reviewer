@@ -7,10 +7,10 @@ class Settings(BaseSettings):
     # LLM gateway
     llm_base_url: str = "http://localhost:11434/v1"
     llm_api_key: str = "ollama"
-    llm_model: str = "qwen3.5:9b"
+    llm_model: str = "qwen3-coder:30b"
     llm_timeout_s: float = 60
     llm_max_tokens: int = 5000
-    llm_json_mode: bool = False
+    llm_json_mode: bool = True
     llm_prompt_version: str = "v2"
     
     # Cache

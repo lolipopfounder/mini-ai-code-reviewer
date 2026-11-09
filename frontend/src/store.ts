@@ -10,11 +10,9 @@ interface ReviewState {
   issues: Issue[]
   cached: boolean
   reviewed: boolean
-  activeIssue: number | null
 
   setLanguage: (language: Language) => void
   setCode: (code: string) => void
-  setActiveIssue: (index: number | null) => void
   submit: () => Promise<void>
 }
 
@@ -26,22 +24,17 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   issues: [],
   cached: false,
   reviewed: false,
-  activeIssue: null,
 
   setLanguage: (language) => {
-    set({ language: language, issues: [], error: '', cached: false, reviewed: false, activeIssue: null })
+    set({ language: language, issues: [], error: '', cached: false, reviewed: false })
   },
 
   setCode: (code) => {
-    set({ code: code, issues: [], error: '', cached: false, reviewed: false, activeIssue: null })
-  },
-
-  setActiveIssue: (index) => {
-    set({ activeIssue: index })
+    set({ code: code, issues: [], error: '', cached: false, reviewed: false })
   },
 
   submit: async () => {
-    set({ isLoading: true, error: '', activeIssue: null })
+    set({ isLoading: true, error: '' })
 
     const language = get().language
     const code = get().code
