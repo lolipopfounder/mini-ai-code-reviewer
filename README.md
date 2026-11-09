@@ -7,7 +7,6 @@ A web app where a user pastes a code snippet, selects the language, and the AI i
 - LLM: any OpenAI compatible API. This example use local Ollama `qwen3-coder:30b` model
 
 ![](docs/images/no_issue.png)
--
 ![](docs/images/issue.png)
 
 ## Quick start
