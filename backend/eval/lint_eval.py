@@ -3,6 +3,7 @@ import ast
 import subprocess
 import tempfile
 import textwrap
+import time
 from fastapi.testclient import TestClient
 from app.config import settings
 from app.main import app
@@ -219,9 +220,11 @@ def is_code(lang, fix, old_line):
 
 
 def check(client, lang, code, bug_lines):
+    start = time.time()
     r = client.post("/lint", json={"language": lang, "code": code})
+    seconds = time.time() - start
     if r.status_code != 200:
-        return [f"HTTP {r.status_code}: {r.json()}"]
+        return [f"HTTP {r.status_code}: {r.json()}"], seconds
 
     issues = r.json()["issues"]
     lines = code.splitlines()
@@ -246,26 +249,29 @@ def check(client, lang, code, bug_lines):
         if not is_code(lang, issue["fix"], lines[end - 1]):
             problems.append(f"fix is not just a code: {issue['fix'][:70]!r}")
 
-    return problems
+    return problems, seconds
 
 
 def main():
     print(f"model: {settings.llm_model}, prompt: {settings.llm_prompt_version}, json mode: {settings.llm_json_mode}")
     print()
     passed = 0
+    times = []
     with TestClient(app) as client:
         for name, lang, code, bug_lines in CASES:
             code = textwrap.dedent(code).lstrip("\n")
-            problems = check(client, lang, code, bug_lines)
+            problems, seconds = check(client, lang, code, bug_lines)
+            times.append(seconds)
             if problems:
-                print(f"FAIL {name}")
+                print(f"FAIL {name} ({seconds:.1f}s)")
                 for p in problems:
                     print(f"  {p}")
             else:
                 passed += 1
-                print(f"PASS {name}")
+                print(f"PASS {name} ({seconds:.1f}s)")
     print()
     print(f"{passed}/{len(CASES)} passed")
+    print(f"latency: total {sum(times):.1f}s, average {sum(times) / len(times):.1f}s, max {max(times):.1f}s")
 
 
 if __name__ == "__main__":
