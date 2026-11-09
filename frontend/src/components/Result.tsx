@@ -19,17 +19,28 @@ function Result() {
   const cached = useReviewStore((state) => state.cached)
   const error = useReviewStore((state) => state.error)
   const isLoading = useReviewStore((state) => state.isLoading)
+  const reviewed = useReviewStore((state) => state.reviewed)
 
   if (isLoading) return <p>Loading...</p>
   if (error) return <p>Error: {error}</p>
-  if (issues.length === 0) return <p>No issues found</p>
+  if (!reviewed) return null
+  const cacheText = <p>result from cache: {cached ? 'True' : 'False'}</p>
+
+  if (issues.length === 0) {
+    return (
+      <div>
+        <p>No issues found</p>
+        {cacheText}
+      </div>
+    )
+  }
 
   const lines = code.split('\n')
 
   return (
     <div>
       <h2>Result</h2>
-      {cached && <p>(from cache)</p>}
+      {cacheText}
       {issues.map((issue, i) => (
         <div key={i} className="issue">
           <h3>Severity: {issue.severity}</h3>

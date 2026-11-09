@@ -6,6 +6,7 @@ from app.schemas import LintResponse, LintRequest, Language
 from app.gateway import LLMGateway, OpenAICompatibleGateway
 from app.errors import LLMOutputError, error_response
 from app.config import settings
+from app.cache import make_key, get_cache, save_cache
 
 app = FastAPI(title="Mini AI Code Reviewer")
 
@@ -33,8 +34,14 @@ def read_root():
 
 @app.post("/lint", tags=["LLM"], response_model=LintResponse)
 async def lint(req: LintRequest, gateway: LLMGateway = Depends(get_gateway)):
+    key = make_key(req.language.value, req.code)
+    issues = get_cache(key)
+    if issues is not None:
+        await gateway.close()
+        return LintResponse(issues=issues, cache=True)
     try:
         issues = await review(gateway, req.language.value, req.code)
+        save_cache(key, issues)
         return LintResponse(issues=issues, cache=False)
     finally:
         await gateway.close()

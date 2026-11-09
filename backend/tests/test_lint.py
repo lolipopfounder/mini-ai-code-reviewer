@@ -3,6 +3,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app, get_gateway
+from app.cache import cache
 
 VALID = json.dumps({"issues": [
     {"line_start": 2, "line_end": 2, "severity": "high", "explanation": "b", "fix": "y = 2"},
@@ -30,6 +31,7 @@ class FakeGateway:
 
 @pytest.fixture
 def lint():
+    cache.clear()
     def post(payload, replies):
         gateway = FakeGateway(replies)
         app.dependency_overrides[get_gateway] = lambda: gateway
@@ -68,3 +70,13 @@ def test_clamps_line_range(lint):
     ]})
     r, _ = lint({"language": "python", "code": "x = 1\ny = 2\n"}, [reply])
     assert [(i["line_start"], i["line_end"]) for i in r.json()["issues"]] == [(1, 2), (2, 2)]
+
+
+# test cache, same code 2nd time come from cache and not call LLM
+def test_cache_same_code(lint):
+    first, _ = lint(CODE, [VALID])
+    second, gateway = lint(CODE, [])
+    assert first.json()["cache"] is False
+    assert second.json()["cache"] is True
+    assert gateway.calls == 0
+    assert second.json()["issues"] == first.json()["issues"]

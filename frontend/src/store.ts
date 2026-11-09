@@ -9,6 +9,7 @@ interface ReviewState {
   error: string
   issues: Issue[]
   cached: boolean
+  reviewed: boolean
   activeIssue: number | null
 
   setLanguage: (language: Language) => void
@@ -24,14 +25,15 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   error: '',
   issues: [],
   cached: false,
+  reviewed: false,
   activeIssue: null,
 
   setLanguage: (language) => {
-    set({ language: language, issues: [], error: '', activeIssue: null })
+    set({ language: language, issues: [], error: '', cached: false, reviewed: false, activeIssue: null })
   },
 
   setCode: (code) => {
-    set({ code: code, issues: [], error: '', activeIssue: null })
+    set({ code: code, issues: [], error: '', cached: false, reviewed: false, activeIssue: null })
   },
 
   setActiveIssue: (index) => {
@@ -46,10 +48,10 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
 
     try {
       const result = await lint(language, code)
-      set({ issues: result.issues, cached: result.cache })
+      set({ issues: result.issues, cached: result.cache, reviewed: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong'
-      set({ error: message, issues: [], cached: false })
+      set({ error: message, issues: [], cached: false, reviewed: false })
     }
 
     set({ isLoading: false })
